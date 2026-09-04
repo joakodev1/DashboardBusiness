@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* 1. Esta línea hace que el botón de tu App.jsx funcione en v4 */
+@custom-variant dark (&:is(.dark *));
+
+/* 2. Acá definimos tus colores personalizados al estilo v4 */
+@theme {
+  --color-flb-cream: #FDFBF7;
+  --color-flb-creamCard: #FFFFFF;
+  --color-flb-dark: #0B0D14;
+  --color-flb-darkCard: #141720;
+  --color-flb-blue: #2563EB;
+  --color-flb-green: #16A34A;
+  --color-flb-red: #E11D48;
+}
