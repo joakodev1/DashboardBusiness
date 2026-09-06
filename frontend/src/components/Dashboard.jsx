@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, Package, ShoppingCart, TrendingUp, TrendingDown, Calendar, Wallet } from 'lucide-react';
-import axios from 'axios';
+// IMPORTANTE: Cambiamos axios por nuestra instancia api
+import api from '../api'; 
 
 const Dashboard = () => {
   const [productos, setProductos] = useState([]);
@@ -13,13 +14,11 @@ const Dashboard = () => {
 
   const cargarDatos = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-
+      // Mirá lo limpio que queda el código sin tener que buscar el token manualmente
       const [resProductos, resVentas, resGastos] = await Promise.all([
-        axios.get('http://localhost:8000/api/finance/products/', config),
-        axios.get('http://localhost:8000/api/finance/sales/', config),
-        axios.get('http://localhost:8000/api/finance/expenses/', config)
+        api.get('finance/products/'),
+        api.get('finance/sales/'),
+        api.get('finance/expenses/')
       ]);
 
       setProductos(resProductos.data);

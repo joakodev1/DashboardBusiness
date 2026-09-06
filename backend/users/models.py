@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User # Importación necesaria para extender el usuario
 
 class Client(models.Model):
     name = models.CharField(max_length=150)
@@ -9,3 +10,11 @@ class Client(models.Model):
 
     def __str__(self):
         return self.name
+
+# Nuevo modelo para extender las cuentas de administrador (JoakoBrand y tu socio)
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username

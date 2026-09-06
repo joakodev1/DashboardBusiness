@@ -9,14 +9,14 @@ import Productos from "./components/Productos";
 import Pedidos from './components/Pedidos';
 import Gastos from './components/Gastos';
 import Clientes from './components/Clientes';
+import { Sun, Moon } from 'lucide-react';
+import Configuracion from './components/Configuracion';
 
 function App() {
-  // Estado para el modo oscuro, inicializado leyendo si el usuario ya lo había elegido antes
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark';
   });
 
-  // Cada vez que cambia el estado, actualizamos la clase en el HTML y guardamos la preferencia
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -27,27 +27,43 @@ function App() {
     }
   }, [isDarkMode]);
 
-  // Función para alternar el tema
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   return (
-    // Este div envuelve absolutamente todo y maneja el fondo general de la app
-    <div className="min-h-screen bg-[#FDFBF7] dark:bg-[#0B0D14] text-gray-900 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-gray-100 dark:bg-[#0B0D14] transition-colors duration-300">
       
-      {/* Botón flotante para cambiar el tema (luego podés moverlo a tu Sidebar o barra superior) */}
-      <button 
+      {/* Botón flotante para cambiar el tema tipo Switch */}
+      <div 
         onClick={toggleTheme}
-        className="fixed bottom-4 right-4 bg-[#2563EB] hover:bg-blue-700 text-white px-4 py-2 rounded-xl z-50 shadow-lg font-medium transition-colors border border-blue-400/30"
+        className="fixed bottom-6 right-6 flex items-center w-24 h-12 bg-white dark:bg-[#141720] rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-gray-200 dark:border-gray-800 cursor-pointer p-1 z-50"
       >
-        {isDarkMode ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
-      </button>
+        {/* Círculo azul que se desliza */}
+        <div 
+          className={`absolute w-10 h-10 bg-[#2563EB] rounded-full transition-transform duration-500 ease-in-out ${
+            isDarkMode ? 'translate-x-12' : 'translate-x-0'
+          }`}
+        />
+        
+        {/* Íconos interactivos */}
+        <div className="relative z-10 flex w-full justify-between items-center px-2.5 pointer-events-none">
+          <Sun 
+            className={`w-5 h-5 transition-colors duration-500 ${
+              !isDarkMode ? 'text-white' : 'text-gray-400 dark:text-gray-500'
+            }`} 
+          />
+          <Moon 
+            className={`w-5 h-5 transition-colors duration-500 ${
+              isDarkMode ? 'text-white' : 'text-gray-400 dark:text-gray-500'
+            }`} 
+          />
+        </div>
+      </div>
 
       <BrowserRouter>
         <Routes>
-          {/* Ruta pública */}
           <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
 
-          {/* El Layout actúa como contenedor de las rutas protegidas */}
           <Route 
             path="/dashboard" 
             element={
@@ -56,12 +72,12 @@ function App() {
               </ProtectedRoute>
             }
           >
-            {/* Rutas anidadas que se inyectan en el <Outlet /> del Layout */}
             <Route index element={<Dashboard />} /> 
             <Route path="productos" element={<Productos />} />
             <Route path="pedidos" element={<Pedidos />} />
             <Route path="gastos" element={<Gastos />} />
             <Route path="clientes" element={<Clientes />} />
+            <Route path="configuracion" element={<Configuracion />} /> {/* <-- Agregá esta línea */}
           </Route>
         </Routes>
       </BrowserRouter>

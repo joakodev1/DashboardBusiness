@@ -1,5 +1,4 @@
 @import "tailwindcss";
-
 /* 1. Esta línea hace que el botón de tu App.jsx funcione en v4 */
 @custom-variant dark (&:is(.dark *));
 
