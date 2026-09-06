@@ -41,7 +41,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="text-gray-900 dark:text-white transition-colors duration-300">
+    <div className="text-gray-900 dark:text-white transition-colors duration-300 mt-8">
       
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Panel Principal</h1>

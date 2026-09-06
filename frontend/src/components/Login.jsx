@@ -36,6 +36,10 @@ const Login = () => {
         const data = await response.json();
         localStorage.setItem('access_token', data.access);
         if (data.refresh) localStorage.setItem('refresh_token', data.refresh);
+        
+        // NUEVA LÍNEA: Guardamos el nombre que el usuario tipeó en el formulario
+        localStorage.setItem('username', username);
+        
         navigate('/dashboard');
       } else {
         // Disparamos la alerta flotante

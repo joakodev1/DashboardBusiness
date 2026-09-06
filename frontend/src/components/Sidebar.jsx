@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
+  const [username] = useState(localStorage.getItem('username') || 'Administrador');
   const location = useLocation();
   const navigate = useNavigate(); 
 
@@ -108,10 +109,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           </div>
           <div className="overflow-hidden">
             <p className="text-sm font-bold text-gray-900 dark:text-white truncate transition-colors duration-300 group-hover:text-[#2563EB] dark:group-hover:text-blue-400">
-              JoakoBrand
+              {username}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              Admin Maestro
+              Admin
             </p>
           </div>
         </div>

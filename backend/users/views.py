@@ -1,23 +1,26 @@
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import api_view, permission_classes # Importaciones nuevas
-from rest_framework.response import Response # Importaciones nuevas
-from .models import Client, UserProfile # Agregamos UserProfile
-from .serializers import ClientSerializer
 import csv
 from django.http import HttpResponse
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from .models import Client
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
+from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
+from .models import Client, UserProfile
+from .serializers import ClientSerializer
+
+# Regla de seguridad: Máximo 3 subidas de foto por minuto por usuario
+class AvatarUploadThrottle(UserRateThrottle):
+    rate = '3/minute'
 
 class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.all().order_by('-created_at')
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated]
 
-# Nuevo endpoint exclusivo para atrapar la imagen desde React
+# Endpoint exclusivo para atrapar la imagen desde React
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([AvatarUploadThrottle]) # Aplicamos el candado
 def upload_avatar(request):
     user = request.user
     

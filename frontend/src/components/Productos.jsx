@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Headphones } from 'lucide-react';
+import { Plus, Edit2, Trash2, Headphones, Search } from 'lucide-react';
 import axios from 'axios';
 
 const Productos = () => {
   const [productos, setProductos] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
+  
+  // 1. Agregamos el estado para guardar lo que el usuario escribe
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [nuevoProducto, setNuevoProducto] = useState({
     name: '',
@@ -86,8 +89,12 @@ const Productos = () => {
     }
   };
 
+  // 2. Filtramos la lista en tiempo real en base al texto del buscador
+  const productosFiltrados = productos.filter(producto => 
+    producto.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    // 1. FONDO GENERAL: Gris perla en claro, Oscuro en dark
     <div className="p-8">
       
       {/* ENCABEZADO */}
@@ -102,7 +109,7 @@ const Productos = () => {
             setNuevoProducto({ name: '', cost_price: '', sale_price: '', stock: '' });
             setMostrarFormulario(!mostrarFormulario);
           }}
-          className="bg-[#2563EB] hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-medium transition-colors text-sm shadow-sm"
+          className="bg-[#2563EB] hover:bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-medium transition-colors text-sm shadow-sm cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Nuevo Auricular
@@ -165,12 +172,26 @@ const Productos = () => {
                 required
               />
             </div>
-            <button type="submit" className="bg-gray-900 dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg font-semibold text-sm hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
+            <button type="submit" className="cursor-pointer bg-gray-900 dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg font-semibold text-sm hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
               {editandoId ? 'Actualizar' : 'Guardar'}
             </button>
           </form>
         </div>
       )}
+
+      {/* 3. BARRA DE BÚSQUEDA */}
+      <div className="mb-6 relative">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Search className="h-4 w-4 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Buscar auricular por modelo..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full sm:w-96 pl-11 pr-4 py-2.5 bg-white dark:bg-[#141720] border border-gray-200 dark:border-gray-800/50 rounded-xl text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-[#2563EB] transition-colors shadow-sm"
+        />
+      </div>
 
       {/* TABLA DE PRODUCTOS */}
       <div className="bg-white dark:bg-[#141720] border border-gray-200 dark:border-gray-800/50 rounded-2xl overflow-hidden shadow-sm transition-colors duration-300">
@@ -186,7 +207,9 @@ const Productos = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/30">
-              {productos.map((producto) => (
+              
+              {/* 4. Usamos productosFiltrados en lugar de productos */}
+              {productosFiltrados.map((producto) => (
                 <tr key={producto.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -212,26 +235,35 @@ const Productos = () => {
                   <td className="px-6 py-4 text-right">
                     <button 
                       onClick={() => handleEdit(producto)}
-                      className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 p-2 transition-colors"
+                      className="cursor-pointer text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 p-2 transition-colors"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={() => handleDelete(producto.id)}
-                      className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-2 transition-colors ml-2"
+                      className="cursor-pointer text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-2 transition-colors ml-2"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
               ))}
-              {productos.length === 0 && (
+
+              {/* 5. Ajustamos los mensajes de estado vacío */}
+              {productos.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400 text-sm transition-colors">
                     No tenés auriculares cargados en el inventario.
                   </td>
                 </tr>
-              )}
+              ) : productosFiltrados.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400 text-sm transition-colors">
+                    No se encontraron auriculares que coincidan con "{searchTerm}".
+                  </td>
+                </tr>
+              ) : null}
+              
             </tbody>
           </table>
         </div>

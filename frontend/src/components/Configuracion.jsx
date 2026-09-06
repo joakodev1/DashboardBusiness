@@ -3,78 +3,77 @@ import { Download, FileSpreadsheet, Camera, Trash2, User } from 'lucide-react';
 import api from '../api'; // Importamos tu instancia de axios configurada
 
 const Configuracion = () => {
-  // 1. Arrancamos leyendo si ya hay un avatar guardado en memoria
   const [avatar, setAvatar] = useState(localStorage.getItem('avatar_url') || null);
+  const [username] = useState(localStorage.getItem('username') || 'Administrador'); // NUEVO
+  const [isUploading, setIsUploading] = useState(false); // Estado para bloquear el botón
   const fileInputRef = useRef(null);
 
   const handleCargarFoto = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Vista previa instantánea para que la UX sea rápida
+      setIsUploading(true); // Bloqueamos la interfaz
+      
+      // Vista previa instantánea
       setAvatar(URL.createObjectURL(file));
 
-      // Preparamos el archivo en formato FormData para enviarlo
       const formData = new FormData();
       formData.append('avatar', file);
 
       try {
-        // Enviamos la petición POST a Django
         const response = await api.post('users/upload-avatar/', formData, {
           headers: {
-            'Content-Type': 'multipart/form-data', // Fundamental para enviar archivos
+            'Content-Type': 'multipart/form-data',
           },
         });
 
-        // 2. Guardamos la URL real que nos manda Django en la memoria del navegador
         const urlReal = response.data.avatar_url;
         setAvatar(urlReal);
         localStorage.setItem('avatar_url', urlReal);
-        
-        // 3. Disparamos un aviso "invisible" para que el Sidebar se entere del cambio al instante
         window.dispatchEvent(new Event('cambioAvatar'));
 
         console.log('Imagen guardada en el servidor:', urlReal);
         
       } catch (error) {
         console.error("Error al subir la foto", error);
-        alert("Hubo un error al guardar tu foto de perfil en la base de datos.");
-        // Si falla la subida, revertimos a la imagen anterior para no dejar la vista previa rota
+        
+        // Verificamos si el error es por exceder las 3 subidas por minuto (Error 429)
+        if (error.response && error.response.status === 429) {
+          alert("Estás subiendo fotos muy rápido. Esperá un minuto e intentá de nuevo.");
+        } else {
+          alert("Hubo un error al guardar tu foto de perfil en la base de datos.");
+        }
+        
+        // Revertimos la imagen si falló la subida
         setAvatar(localStorage.getItem('avatar_url') || null);
+      } finally {
+        setIsUploading(false); // Desbloqueamos el botón siempre, falle o no
       }
     }
   };
 
   const handleEliminarFoto = () => {
-    // 4. Limpiamos estado, borramos de memoria y avisamos al Sidebar
     setAvatar(null);
     localStorage.removeItem('avatar_url');
     window.dispatchEvent(new Event('cambioAvatar'));
-    
-    // Nota: Si a futuro querés que la foto también se borre del servidor al tocar "Eliminar", 
-    // podrías armar un api.delete('users/remove-avatar/') acá.
   };
 
   const handleExportar = async (tipo) => {
-    // Ruteamos cada botón a su endpoint correspondiente en Django
     const endpoints = {
       clientes: 'users/export/clients/',
-      ventas: 'finance/export/sales/',     // Ajustá esta ruta a tu app de finanzas
-      gastos: 'finance/export/expenses/'   // Ajustá esta ruta a tu app de finanzas
+      ventas: 'finance/export/sales/',
+      gastos: 'finance/export/expenses/'
     };
 
     try {
-      // Pedimos el archivo al servidor (blob = formato de archivo)
       const response = await api.get(endpoints[tipo], { responseType: 'blob' });
       
-      // Creamos un link invisible en el navegador, le anclamos el archivo y forzamos el clic
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `FLB_Gaming_${tipo}.csv`); // Nombre del archivo descargado
+      link.setAttribute('download', `FLB_Gaming_${tipo}.csv`);
       document.body.appendChild(link);
       link.click();
       
-      // Limpiamos la memoria
       link.remove(); 
       window.URL.revokeObjectURL(url);
       
@@ -109,8 +108,8 @@ const Configuracion = () => {
               </div>
             </div>
 
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">JoakoBrand</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-6">Administrador Maestro</p>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{username}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-6">Admin</p>
 
             {/* Input de archivo oculto */}
             <input 
@@ -124,16 +123,26 @@ const Configuracion = () => {
             <div className="flex gap-3">
               <button 
                 onClick={() => fileInputRef.current.click()}
-                className="cursor-pointer flex items-center gap-2 bg-[#2563EB] hover:bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
+                disabled={isUploading}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm
+                  ${isUploading 
+                    ? 'bg-blue-400 cursor-not-allowed text-white/70' 
+                    : 'bg-[#2563EB] hover:bg-blue-600 text-white cursor-pointer' 
+                  }`}
               >
                 <Camera className="w-4 h-4" />
-                Cambiar Foto
+                {isUploading ? 'Subiendo...' : 'Cambiar Foto'}
               </button>
               
               {avatar && (
                 <button 
                   onClick={handleEliminarFoto}
-                  className="cursor-pointer flex items-center gap-2 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                  disabled={isUploading}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors
+                    ${isUploading
+                      ? 'bg-red-50 text-red-300 cursor-not-allowed'
+                      : 'bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 cursor-pointer'
+                    }`}
                 >
                   <Trash2 className="w-4 h-4" />
                   Eliminar
