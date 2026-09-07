@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, ArrowRight, AlertCircle, X, Loader2 } from 'lucide-react';
+import api from '../api';// Ajustá la ruta de importación según dónde tengas guardado tu api.js
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -21,36 +22,26 @@ const Login = () => {
     setError(null); // Limpiamos errores previos
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/token/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: username,
-          password: password,
-        }),
+      // Usamos nuestra instancia 'api' en lugar de fetch apuntando a localhost
+      const response = await api.post('token/', {
+        username: username,
+        password: password,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('access_token', data.access);
-        if (data.refresh) localStorage.setItem('refresh_token', data.refresh);
-        
-        // NUEVA LÍNEA: Guardamos el nombre que el usuario tipeó en el formulario
-        localStorage.setItem('username', username);
-        
-        navigate('/dashboard');
-      } else {
-        // Disparamos la alerta flotante
-        setError('Las credenciales ingresadas son incorrectas.');
-        
-        // La ocultamos automáticamente después de 4 segundos
-        setTimeout(() => setError(null), 4000);
-      }
+      const data = response.data;
+      localStorage.setItem('access_token', data.access);
+      if (data.refresh) localStorage.setItem('refresh_token', data.refresh);
+      
+      // Guardamos el nombre que el usuario tipeó en el formulario
+      localStorage.setItem('username', username);
+      
+      navigate('/dashboard');
+      
     } catch (error) {
       console.error('Error al conectar con el servidor:', error);
-      setError('Error de conexión. Verificá que el servidor esté encendido.');
+      setError('Credenciales incorrectas o error de conexión con el servidor.');
+      
+      // La ocultamos automáticamente después de 4 segundos
       setTimeout(() => setError(null), 4000);
     } finally {
       setIsLoading(false);

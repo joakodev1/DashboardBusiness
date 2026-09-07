@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Creamos una instancia configurada de Axios
+// Creamos una instancia configurada de Axios apuntando a Render
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/',
+  baseURL: 'https://flb-gaming-backend.onrender.com/api/',
 });
 
 // 1. INTERCEPTOR DE PETICIÓN: Le inyecta el access_token a cada request automáticamente
@@ -30,8 +30,8 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refresh_token');
         
-        // Pedimos un nuevo token a Django
-        const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+        // Pedimos un nuevo token a Django en el servidor de Render
+        const response = await axios.post('https://flb-gaming-backend.onrender.com/api/token/refresh/', {
           refresh: refreshToken,
         });
 
